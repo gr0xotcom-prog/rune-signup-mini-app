@@ -1,5 +1,6 @@
 <!doctype html>
-<html lang="ru" style="--tg-viewport-height: 100vh; --tg-viewport-stable-height: 100vh;"><head>
+<html lang="ru">
+<head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="color-scheme" content="light dark">
@@ -103,7 +104,12 @@ input::-webkit-calendar-picker-indicator { filter: invert(.8); opacity: .8; }
   scrollbar-width: none;
   mask-image: linear-gradient(transparent, #000 30%, #000 70%, transparent);
   overscroll-behavior: contain;
+  touch-action: none;
+  -webkit-overflow-scrolling: touch;
+  cursor: grab;
+  user-select: none;
 }
+.wheel.dragging { cursor: grabbing; scroll-snap-type: none; }
 .wheel::-webkit-scrollbar { display: none; }
 .wheel::before, .wheel::after { content: ""; display: block; height: 50px; }
 .wheel-option {
@@ -144,6 +150,7 @@ input::-webkit-calendar-picker-indicator { filter: invert(.8); opacity: .8; }
   cursor: pointer;
 }
 .submit:active { transform: translateY(1px); }
+.submit:disabled { opacity: .72; cursor: wait; }
 .status { min-height: 20px; margin: 0; text-align: center; color: var(--muted); font-size: 13px; }
 
 @media (prefers-color-scheme: light) {
@@ -153,7 +160,7 @@ input::-webkit-calendar-picker-indicator { filter: invert(.8); opacity: .8; }
   input::-webkit-calendar-picker-indicator { filter: none; }
 }
 
-</style>
+  </style>
 </head>
 <body>
   <main class="page">
@@ -166,13 +173,14 @@ input::-webkit-calendar-picker-indicator { filter: invert(.8); opacity: .8; }
       </div>
     </header>
 
-    <form id="signup-form" novalidate="">
+    <form id="signup-form" novalidate>
       <section class="card">
         <label for="nickname">
           <span class="number">1</span>
           <span><b>Игровой ник</b><small>Как вас найти в игре</small></span>
         </label>
-        <input id="nickname" name="nickname" type="text" maxlength="40" autocomplete="nickname" placeholder="Введите игровой ник" required="">
+        <input id="nickname" name="nickname" type="text" maxlength="40"
+               autocomplete="nickname" placeholder="Введите игровой ник" required>
         <p class="error" id="nickname-error"></p>
       </section>
 
@@ -181,7 +189,7 @@ input::-webkit-calendar-picker-indicator { filter: invert(.8); opacity: .8; }
           <span class="number">2</span>
           <span><b>Дата</b><small>Год, месяц и день</small></span>
         </label>
-        <input id="event-date" name="event-date" type="date" required="" min="2026-09-23">
+        <input id="event-date" name="event-date" type="date" required>
         <p class="error" id="date-error"></p>
       </section>
 
@@ -193,12 +201,12 @@ input::-webkit-calendar-picker-indicator { filter: invert(.8); opacity: .8; }
         <div class="clock" aria-label="Выбор времени">
           <div class="wheel-wrap">
             <span class="wheel-label">ЧАСЫ</span>
-            <div class="wheel" id="hours" role="listbox" tabindex="0"><div class="wheel-option" data-value="0" role="option" aria-selected="false">00</div><div class="wheel-option" data-value="1" role="option" aria-selected="false">01</div><div class="wheel-option" data-value="2" role="option" aria-selected="false">02</div><div class="wheel-option" data-value="3" role="option" aria-selected="false">03</div><div class="wheel-option" data-value="4" role="option" aria-selected="false">04</div><div class="wheel-option" data-value="5" role="option" aria-selected="false">05</div><div class="wheel-option" data-value="6" role="option" aria-selected="false">06</div><div class="wheel-option" data-value="7" role="option" aria-selected="false">07</div><div class="wheel-option" data-value="8" role="option" aria-selected="false">08</div><div class="wheel-option" data-value="9" role="option" aria-selected="false">09</div><div class="wheel-option" data-value="10" role="option" aria-selected="false">10</div><div class="wheel-option" data-value="11" role="option" aria-selected="false">11</div><div class="wheel-option" data-value="12" role="option" aria-selected="false">12</div><div class="wheel-option" data-value="13" role="option" aria-selected="false">13</div><div class="wheel-option" data-value="14" role="option" aria-selected="false">14</div><div class="wheel-option" data-value="15" role="option" aria-selected="false">15</div><div class="wheel-option" data-value="16" role="option" aria-selected="false">16</div><div class="wheel-option" data-value="17" role="option" aria-selected="false">17</div><div class="wheel-option" data-value="18" role="option" aria-selected="false">18</div><div class="wheel-option" data-value="19" role="option" aria-selected="false">19</div><div class="wheel-option" data-value="20" role="option" aria-selected="false">20</div><div class="wheel-option active" data-value="21" role="option" aria-selected="true">21</div><div class="wheel-option" data-value="22" role="option" aria-selected="false">22</div><div class="wheel-option" data-value="23" role="option" aria-selected="false">23</div></div>
+            <div class="wheel" id="hours" role="listbox" tabindex="0"></div>
           </div>
           <span class="colon" aria-hidden="true">:</span>
           <div class="wheel-wrap">
             <span class="wheel-label">МИНУТЫ</span>
-            <div class="wheel" id="minutes" role="listbox" tabindex="0"><div class="wheel-option" data-value="0" role="option" aria-selected="false">00</div><div class="wheel-option active" data-value="1" role="option" aria-selected="true">01</div><div class="wheel-option" data-value="2" role="option" aria-selected="false">02</div><div class="wheel-option" data-value="3" role="option" aria-selected="false">03</div><div class="wheel-option" data-value="4" role="option" aria-selected="false">04</div><div class="wheel-option" data-value="5" role="option" aria-selected="false">05</div><div class="wheel-option" data-value="6" role="option" aria-selected="false">06</div><div class="wheel-option" data-value="7" role="option" aria-selected="false">07</div><div class="wheel-option" data-value="8" role="option" aria-selected="false">08</div><div class="wheel-option" data-value="9" role="option" aria-selected="false">09</div><div class="wheel-option" data-value="10" role="option" aria-selected="false">10</div><div class="wheel-option" data-value="11" role="option" aria-selected="false">11</div><div class="wheel-option" data-value="12" role="option" aria-selected="false">12</div><div class="wheel-option" data-value="13" role="option" aria-selected="false">13</div><div class="wheel-option" data-value="14" role="option" aria-selected="false">14</div><div class="wheel-option" data-value="15" role="option" aria-selected="false">15</div><div class="wheel-option" data-value="16" role="option" aria-selected="false">16</div><div class="wheel-option" data-value="17" role="option" aria-selected="false">17</div><div class="wheel-option" data-value="18" role="option" aria-selected="false">18</div><div class="wheel-option" data-value="19" role="option" aria-selected="false">19</div><div class="wheel-option" data-value="20" role="option" aria-selected="false">20</div><div class="wheel-option" data-value="21" role="option" aria-selected="false">21</div><div class="wheel-option" data-value="22" role="option" aria-selected="false">22</div><div class="wheel-option" data-value="23" role="option" aria-selected="false">23</div><div class="wheel-option" data-value="24" role="option" aria-selected="false">24</div><div class="wheel-option" data-value="25" role="option" aria-selected="false">25</div><div class="wheel-option" data-value="26" role="option" aria-selected="false">26</div><div class="wheel-option" data-value="27" role="option" aria-selected="false">27</div><div class="wheel-option" data-value="28" role="option" aria-selected="false">28</div><div class="wheel-option" data-value="29" role="option" aria-selected="false">29</div><div class="wheel-option" data-value="30" role="option" aria-selected="false">30</div><div class="wheel-option" data-value="31" role="option" aria-selected="false">31</div><div class="wheel-option" data-value="32" role="option" aria-selected="false">32</div><div class="wheel-option" data-value="33" role="option" aria-selected="false">33</div><div class="wheel-option" data-value="34" role="option" aria-selected="false">34</div><div class="wheel-option" data-value="35" role="option" aria-selected="false">35</div><div class="wheel-option" data-value="36" role="option" aria-selected="false">36</div><div class="wheel-option" data-value="37" role="option" aria-selected="false">37</div><div class="wheel-option" data-value="38" role="option" aria-selected="false">38</div><div class="wheel-option" data-value="39" role="option" aria-selected="false">39</div><div class="wheel-option" data-value="40" role="option" aria-selected="false">40</div><div class="wheel-option" data-value="41" role="option" aria-selected="false">41</div><div class="wheel-option" data-value="42" role="option" aria-selected="false">42</div><div class="wheel-option" data-value="43" role="option" aria-selected="false">43</div><div class="wheel-option" data-value="44" role="option" aria-selected="false">44</div><div class="wheel-option" data-value="45" role="option" aria-selected="false">45</div><div class="wheel-option" data-value="46" role="option" aria-selected="false">46</div><div class="wheel-option" data-value="47" role="option" aria-selected="false">47</div><div class="wheel-option" data-value="48" role="option" aria-selected="false">48</div><div class="wheel-option" data-value="49" role="option" aria-selected="false">49</div><div class="wheel-option" data-value="50" role="option" aria-selected="false">50</div><div class="wheel-option" data-value="51" role="option" aria-selected="false">51</div><div class="wheel-option" data-value="52" role="option" aria-selected="false">52</div><div class="wheel-option" data-value="53" role="option" aria-selected="false">53</div><div class="wheel-option" data-value="54" role="option" aria-selected="false">54</div><div class="wheel-option" data-value="55" role="option" aria-selected="false">55</div><div class="wheel-option" data-value="56" role="option" aria-selected="false">56</div><div class="wheel-option" data-value="57" role="option" aria-selected="false">57</div><div class="wheel-option" data-value="58" role="option" aria-selected="false">58</div><div class="wheel-option" data-value="59" role="option" aria-selected="false">59</div></div>
+            <div class="wheel" id="minutes" role="listbox" tabindex="0"></div>
           </div>
           <div class="selection" aria-hidden="true"></div>
         </div>
@@ -228,8 +236,9 @@ dateInput.value = localIsoDate();
 
 function createWheel(id, count, initial) {
   const wheel = document.querySelector(`#${id}`);
-  wheel.replaceChildren();
   let value = initial;
+  let settleTimer;
+  let drag = null;
   for (let number = 0; number < count; number += 1) {
     const option = document.createElement('div');
     option.className = 'wheel-option';
@@ -248,15 +257,70 @@ function createWheel(id, count, initial) {
     });
   }
 
-  let timer;
+  function settle(behavior = 'smooth') {
+    const next = Math.max(0, Math.min(count - 1, Math.round(wheel.scrollTop / 50)));
+    wheel.scrollTo({ top: next * 50, behavior });
+    select();
+  }
+
   wheel.addEventListener('scroll', () => {
-    clearTimeout(timer);
-    timer = setTimeout(() => {
-      wheel.scrollTo({ top: Math.round(wheel.scrollTop / 50) * 50, behavior: 'smooth' });
-      select();
-      tg?.HapticFeedback?.selectionChanged();
-    }, 80);
+    select();
+    clearTimeout(settleTimer);
+    if (!drag) {
+      settleTimer = setTimeout(() => {
+        settle();
+        tg?.HapticFeedback?.selectionChanged();
+      }, 110);
+    }
   }, { passive: true });
+
+  wheel.addEventListener('pointerdown', (event) => {
+    if (event.pointerType === 'mouse' && event.button !== 0) return;
+    clearTimeout(settleTimer);
+    drag = {
+      id: event.pointerId,
+      y: event.clientY,
+      top: wheel.scrollTop,
+      lastY: event.clientY,
+      lastTime: performance.now(),
+      velocity: 0,
+    };
+    wheel.setPointerCapture?.(event.pointerId);
+    wheel.classList.add('dragging');
+    event.preventDefault();
+  });
+
+  wheel.addEventListener('pointermove', (event) => {
+    if (!drag || drag.id !== event.pointerId) return;
+    const now = performance.now();
+    const elapsed = Math.max(1, now - drag.lastTime);
+    drag.velocity = (drag.lastY - event.clientY) / elapsed;
+    wheel.scrollTop = drag.top + drag.y - event.clientY;
+    drag.lastY = event.clientY;
+    drag.lastTime = now;
+    event.preventDefault();
+  });
+
+  function finishDrag(event) {
+    if (!drag || drag.id !== event.pointerId) return;
+    const velocity = drag.velocity;
+    drag = null;
+    wheel.classList.remove('dragging');
+    wheel.releasePointerCapture?.(event.pointerId);
+    wheel.scrollTop += velocity * 115;
+    settle();
+    tg?.HapticFeedback?.selectionChanged();
+  }
+
+  wheel.addEventListener('pointerup', finishDrag);
+  wheel.addEventListener('pointercancel', finishDrag);
+
+  wheel.addEventListener('keydown', (event) => {
+    if (!['ArrowUp', 'ArrowDown'].includes(event.key)) return;
+    event.preventDefault();
+    const direction = event.key === 'ArrowDown' ? 1 : -1;
+    wheel.scrollTo({ top: Math.max(0, Math.min(count - 1, value + direction)) * 50, behavior: 'smooth' });
+  });
   requestAnimationFrame(() => {
     wheel.scrollTop = initial * 50;
     select();
@@ -295,6 +359,10 @@ form.addEventListener('submit', (event) => {
     time: `${selectedHour()}:${selectedMinute()}`,
   });
   if (tg?.sendData) {
+    const submit = form.querySelector('.submit');
+    submit.disabled = true;
+    submit.textContent = 'Отправляем…';
+    status.textContent = 'Запись отправляется администратору';
     tg.HapticFeedback?.notificationOccurred('success');
     tg.sendData(data);
   } else {
@@ -302,8 +370,6 @@ form.addEventListener('submit', (event) => {
   }
 });
 
-</script>
-
-
-
-</body><div id="codex-browser-sidebar-comments-root" style="position: fixed; inset: 0px; pointer-events: none; z-index: 2147483647;"></div></html>
+  </script>
+</body>
+</html>
