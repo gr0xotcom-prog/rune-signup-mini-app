@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="ru" style="--tg-viewport-height: 100vh; --tg-viewport-stable-height: 100vh;"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <title>Запись на руну</title>
+  <script src="https://telegram.org/js/telegram-web-app.js?63"></script>
+  <style>
+:root {
+  --bg: var(--tg-theme-bg-color, #0d1420);
+  --text: var(--tg-theme-text-color, #f7f9fc);
+  --muted: var(--tg-theme-hint-color, #8d99aa);
+  --card: var(--tg-theme-secondary-bg-color, #182334);
+  --button: var(--tg-theme-button-color, #6c5ce7);
+  --button-text: var(--tg-theme-button-text-color, #ffffff);
+  --accent: #b9a7ff;
+  --line: rgba(255, 255, 255, .09);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
+body {
+  margin: 0;
+  color: var(--text);
+  background:
+    radial-gradient(circle at 88% 4%, rgba(108, 92, 231, .32), transparent 32%),
+    radial-gradient(circle at 8% 36%, rgba(47, 179, 255, .12), transparent 30%),
+    var(--bg);
+}
+
+.page {
+  width: min(100%, 520px);
+  margin: 0 auto;
+  padding: max(22px, env(safe-area-inset-top)) 18px max(30px, env(safe-area-inset-bottom));
+}
+
+.hero { display: flex; gap: 16px; align-items: flex-start; margin: 5px 0 26px; }
+.rune {
+  flex: 0 0 58px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  border-radius: 18px;
+  font: 700 32px Georgia, serif;
+  color: #fff;
+  background: linear-gradient(145deg, #8a75ff, #5542cf);
+  box-shadow: 0 12px 30px rgba(94, 72, 220, .35);
+}
+.eyebrow { margin: 1px 0 5px; color: var(--accent); font-size: 12px; font-weight: 800; letter-spacing: .14em; }
+h1 { margin: 0; font-size: clamp(24px, 7vw, 34px); line-height: 1.08; letter-spacing: -.035em; }
+.lead { margin: 9px 0 0; color: var(--muted); font-size: 14px; line-height: 1.45; }
+
+form { display: grid; gap: 13px; }
+.card {
+  padding: 17px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: color-mix(in srgb, var(--card) 94%, transparent);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, .14);
+}
+label, .field-title { display: flex; align-items: center; gap: 12px; }
+.number {
+  width: 31px;
+  height: 31px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 10px;
+  color: var(--accent);
+  background: rgba(133, 111, 255, .15);
+  font-weight: 800;
+}
+label span:last-child, .field-title span:last-child { display: grid; gap: 2px; }
+b { font-size: 16px; }
+small { color: var(--muted); font-size: 12px; }
+
+input {
+  width: 100%;
+  height: 52px;
+  margin-top: 15px;
+  padding: 0 15px;
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  outline: none;
+  color: var(--text);
+  background: rgba(0, 0, 0, .16);
+  font: inherit;
+  font-size: 16px;
+  transition: border-color .2s, box-shadow .2s;
+}
+input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(155, 133, 255, .14); }
+input::-webkit-calendar-picker-indicator { filter: invert(.8); opacity: .8; }
+.error { min-height: 15px; margin: 6px 2px -3px; color: #ff8292; font-size: 12px; }
+
+.clock { position: relative; display: flex; justify-content: center; align-items: center; gap: 7px; margin-top: 14px; }
+.wheel-wrap { position: relative; width: 105px; text-align: center; z-index: 1; }
+.wheel-label { display: block; margin-bottom: 5px; color: var(--muted); font-size: 10px; font-weight: 800; letter-spacing: .12em; }
+.wheel {
+  height: 150px;
+  overflow-y: auto;
+  scroll-snap-type: y mandatory;
+  scrollbar-width: none;
+  mask-image: linear-gradient(transparent, #000 30%, #000 70%, transparent);
+  overscroll-behavior: contain;
+}
+.wheel::-webkit-scrollbar { display: none; }
+.wheel::before, .wheel::after { content: ""; display: block; height: 50px; }
+.wheel-option {
+  height: 50px;
+  display: grid;
+  place-items: center;
+  scroll-snap-align: center;
+  color: var(--muted);
+  font: 700 29px ui-monospace, "SFMono-Regular", Consolas, monospace;
+  transition: color .18s, transform .18s;
+}
+.wheel-option.active { color: var(--text); transform: scale(1.12); }
+.colon { margin-top: 18px; color: var(--accent); font: 800 30px ui-monospace, monospace; }
+.selection {
+  position: absolute;
+  left: 50%;
+  top: 80px;
+  width: 230px;
+  height: 50px;
+  transform: translate(-50%, -50%);
+  border: 1px solid rgba(165, 145, 255, .32);
+  border-radius: 14px;
+  background: rgba(130, 105, 255, .08);
+  pointer-events: none;
+}
+
+.submit {
+  height: 58px;
+  margin-top: 6px;
+  border: 0;
+  border-radius: 18px;
+  color: var(--button-text);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--button) 80%, #a88cff), var(--button));
+  box-shadow: 0 12px 26px color-mix(in srgb, var(--button) 34%, transparent);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.submit:active { transform: translateY(1px); }
+.status { min-height: 20px; margin: 0; text-align: center; color: var(--muted); font-size: 13px; }
+
+@media (prefers-color-scheme: light) {
+  :root { --line: rgba(41, 31, 78, .1); }
+  body { background-color: var(--bg); }
+  input { background: rgba(90, 67, 140, .055); }
+  input::-webkit-calendar-picker-indicator { filter: none; }
+}
+
+</style>
+</head>
+<body>
+  <main class="page">
+    <header class="hero">
+      <div class="rune" aria-hidden="true">ᚱ</div>
+      <div>
+        <p class="eyebrow">ЗАПИСЬ НА РУНУ</p>
+        <h1>Выберите дату и время</h1>
+        <p class="lead">Заполните данные — запись сразу получит администратор.</p>
+      </div>
+    </header>
+
+    <form id="signup-form" novalidate="">
+      <section class="card">
+        <label for="nickname">
+          <span class="number">1</span>
+          <span><b>Игровой ник</b><small>Как вас найти в игре</small></span>
+        </label>
+        <input id="nickname" name="nickname" type="text" maxlength="40" autocomplete="nickname" placeholder="Введите игровой ник" required="">
+        <p class="error" id="nickname-error"></p>
+      </section>
+
+      <section class="card">
+        <label for="event-date">
+          <span class="number">2</span>
+          <span><b>Дата</b><small>Год, месяц и день</small></span>
+        </label>
+        <input id="event-date" name="event-date" type="date" required="" min="2026-09-23">
+        <p class="error" id="date-error"></p>
+      </section>
+
+      <section class="card time-card">
+        <div class="field-title">
+          <span class="number">3</span>
+          <span><b>Время</b><small>Прокрутите часы и минуты</small></span>
+        </div>
+        <div class="clock" aria-label="Выбор времени">
+          <div class="wheel-wrap">
+            <span class="wheel-label">ЧАСЫ</span>
+            <div class="wheel" id="hours" role="listbox" tabindex="0"><div class="wheel-option" data-value="0" role="option" aria-selected="false">00</div><div class="wheel-option" data-value="1" role="option" aria-selected="false">01</div><div class="wheel-option" data-value="2" role="option" aria-selected="false">02</div><div class="wheel-option" data-value="3" role="option" aria-selected="false">03</div><div class="wheel-option" data-value="4" role="option" aria-selected="false">04</div><div class="wheel-option" data-value="5" role="option" aria-selected="false">05</div><div class="wheel-option" data-value="6" role="option" aria-selected="false">06</div><div class="wheel-option" data-value="7" role="option" aria-selected="false">07</div><div class="wheel-option" data-value="8" role="option" aria-selected="false">08</div><div class="wheel-option" data-value="9" role="option" aria-selected="false">09</div><div class="wheel-option" data-value="10" role="option" aria-selected="false">10</div><div class="wheel-option" data-value="11" role="option" aria-selected="false">11</div><div class="wheel-option" data-value="12" role="option" aria-selected="false">12</div><div class="wheel-option" data-value="13" role="option" aria-selected="false">13</div><div class="wheel-option" data-value="14" role="option" aria-selected="false">14</div><div class="wheel-option" data-value="15" role="option" aria-selected="false">15</div><div class="wheel-option" data-value="16" role="option" aria-selected="false">16</div><div class="wheel-option" data-value="17" role="option" aria-selected="false">17</div><div class="wheel-option" data-value="18" role="option" aria-selected="false">18</div><div class="wheel-option" data-value="19" role="option" aria-selected="false">19</div><div class="wheel-option" data-value="20" role="option" aria-selected="false">20</div><div class="wheel-option active" data-value="21" role="option" aria-selected="true">21</div><div class="wheel-option" data-value="22" role="option" aria-selected="false">22</div><div class="wheel-option" data-value="23" role="option" aria-selected="false">23</div></div>
+          </div>
+          <span class="colon" aria-hidden="true">:</span>
+          <div class="wheel-wrap">
+            <span class="wheel-label">МИНУТЫ</span>
+            <div class="wheel" id="minutes" role="listbox" tabindex="0"><div class="wheel-option" data-value="0" role="option" aria-selected="false">00</div><div class="wheel-option active" data-value="1" role="option" aria-selected="true">01</div><div class="wheel-option" data-value="2" role="option" aria-selected="false">02</div><div class="wheel-option" data-value="3" role="option" aria-selected="false">03</div><div class="wheel-option" data-value="4" role="option" aria-selected="false">04</div><div class="wheel-option" data-value="5" role="option" aria-selected="false">05</div><div class="wheel-option" data-value="6" role="option" aria-selected="false">06</div><div class="wheel-option" data-value="7" role="option" aria-selected="false">07</div><div class="wheel-option" data-value="8" role="option" aria-selected="false">08</div><div class="wheel-option" data-value="9" role="option" aria-selected="false">09</div><div class="wheel-option" data-value="10" role="option" aria-selected="false">10</div><div class="wheel-option" data-value="11" role="option" aria-selected="false">11</div><div class="wheel-option" data-value="12" role="option" aria-selected="false">12</div><div class="wheel-option" data-value="13" role="option" aria-selected="false">13</div><div class="wheel-option" data-value="14" role="option" aria-selected="false">14</div><div class="wheel-option" data-value="15" role="option" aria-selected="false">15</div><div class="wheel-option" data-value="16" role="option" aria-selected="false">16</div><div class="wheel-option" data-value="17" role="option" aria-selected="false">17</div><div class="wheel-option" data-value="18" role="option" aria-selected="false">18</div><div class="wheel-option" data-value="19" role="option" aria-selected="false">19</div><div class="wheel-option" data-value="20" role="option" aria-selected="false">20</div><div class="wheel-option" data-value="21" role="option" aria-selected="false">21</div><div class="wheel-option" data-value="22" role="option" aria-selected="false">22</div><div class="wheel-option" data-value="23" role="option" aria-selected="false">23</div><div class="wheel-option" data-value="24" role="option" aria-selected="false">24</div><div class="wheel-option" data-value="25" role="option" aria-selected="false">25</div><div class="wheel-option" data-value="26" role="option" aria-selected="false">26</div><div class="wheel-option" data-value="27" role="option" aria-selected="false">27</div><div class="wheel-option" data-value="28" role="option" aria-selected="false">28</div><div class="wheel-option" data-value="29" role="option" aria-selected="false">29</div><div class="wheel-option" data-value="30" role="option" aria-selected="false">30</div><div class="wheel-option" data-value="31" role="option" aria-selected="false">31</div><div class="wheel-option" data-value="32" role="option" aria-selected="false">32</div><div class="wheel-option" data-value="33" role="option" aria-selected="false">33</div><div class="wheel-option" data-value="34" role="option" aria-selected="false">34</div><div class="wheel-option" data-value="35" role="option" aria-selected="false">35</div><div class="wheel-option" data-value="36" role="option" aria-selected="false">36</div><div class="wheel-option" data-value="37" role="option" aria-selected="false">37</div><div class="wheel-option" data-value="38" role="option" aria-selected="false">38</div><div class="wheel-option" data-value="39" role="option" aria-selected="false">39</div><div class="wheel-option" data-value="40" role="option" aria-selected="false">40</div><div class="wheel-option" data-value="41" role="option" aria-selected="false">41</div><div class="wheel-option" data-value="42" role="option" aria-selected="false">42</div><div class="wheel-option" data-value="43" role="option" aria-selected="false">43</div><div class="wheel-option" data-value="44" role="option" aria-selected="false">44</div><div class="wheel-option" data-value="45" role="option" aria-selected="false">45</div><div class="wheel-option" data-value="46" role="option" aria-selected="false">46</div><div class="wheel-option" data-value="47" role="option" aria-selected="false">47</div><div class="wheel-option" data-value="48" role="option" aria-selected="false">48</div><div class="wheel-option" data-value="49" role="option" aria-selected="false">49</div><div class="wheel-option" data-value="50" role="option" aria-selected="false">50</div><div class="wheel-option" data-value="51" role="option" aria-selected="false">51</div><div class="wheel-option" data-value="52" role="option" aria-selected="false">52</div><div class="wheel-option" data-value="53" role="option" aria-selected="false">53</div><div class="wheel-option" data-value="54" role="option" aria-selected="false">54</div><div class="wheel-option" data-value="55" role="option" aria-selected="false">55</div><div class="wheel-option" data-value="56" role="option" aria-selected="false">56</div><div class="wheel-option" data-value="57" role="option" aria-selected="false">57</div><div class="wheel-option" data-value="58" role="option" aria-selected="false">58</div><div class="wheel-option" data-value="59" role="option" aria-selected="false">59</div></div>
+          </div>
+          <div class="selection" aria-hidden="true"></div>
+        </div>
+      </section>
+
+      <button class="submit" type="submit">Подтвердить запись</button>
+      <p class="status" id="status" role="status"></p>
+    </form>
+  </main>
+  <script>
+const tg = window.Telegram?.WebApp;
+const form = document.querySelector('#signup-form');
+const nickname = document.querySelector('#nickname');
+const dateInput = document.querySelector('#event-date');
+const status = document.querySelector('#status');
+
+tg?.ready();
+tg?.expand();
+
+function localIsoDate(date = new Date()) {
+  const offset = date.getTimezoneOffset() * 60000;
+  return new Date(date.getTime() - offset).toISOString().slice(0, 10);
+}
+
+dateInput.min = localIsoDate();
+dateInput.value = localIsoDate();
+
+function createWheel(id, count, initial) {
+  const wheel = document.querySelector(`#${id}`);
+  wheel.replaceChildren();
+  let value = initial;
+  for (let number = 0; number < count; number += 1) {
+    const option = document.createElement('div');
+    option.className = 'wheel-option';
+    option.textContent = String(number).padStart(2, '0');
+    option.dataset.value = String(number);
+    option.setAttribute('role', 'option');
+    option.addEventListener('click', () => wheel.scrollTo({ top: number * 50, behavior: 'smooth' }));
+    wheel.append(option);
+  }
+
+  function select() {
+    value = Math.max(0, Math.min(count - 1, Math.round(wheel.scrollTop / 50)));
+    wheel.querySelectorAll('.wheel-option').forEach((option, index) => {
+      option.classList.toggle('active', index === value);
+      option.setAttribute('aria-selected', index === value ? 'true' : 'false');
+    });
+  }
+
+  let timer;
+  wheel.addEventListener('scroll', () => {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      wheel.scrollTo({ top: Math.round(wheel.scrollTop / 50) * 50, behavior: 'smooth' });
+      select();
+      tg?.HapticFeedback?.selectionChanged();
+    }, 80);
+  }, { passive: true });
+  requestAnimationFrame(() => {
+    wheel.scrollTop = initial * 50;
+    select();
+  });
+  return () => String(value).padStart(2, '0');
+}
+
+const now = new Date();
+const selectedHour = createWheel('hours', 24, now.getHours());
+const selectedMinute = createWheel('minutes', 60, now.getMinutes());
+
+function displayDate(iso) {
+  const [year, month, day] = iso.split('-');
+  return `${day}.${month}.${year}`;
+}
+
+function validate() {
+  const nick = nickname.value.trim();
+  const selectedDate = dateInput.value;
+  document.querySelector('#nickname-error').textContent = nick ? '' : 'Введите игровой ник';
+  document.querySelector('#date-error').textContent = selectedDate ? '' : 'Выберите дату';
+  return nick && selectedDate ? { nick, selectedDate } : null;
+}
+
+form.addEventListener('submit', (event) => {
+  event.preventDefault();
+  const values = validate();
+  if (!values) {
+    tg?.HapticFeedback?.notificationOccurred('error');
+    return;
+  }
+  const data = JSON.stringify({
+    type: 'rune_signup',
+    nick: values.nick,
+    date: displayDate(values.selectedDate),
+    time: `${selectedHour()}:${selectedMinute()}`,
+  });
+  if (tg?.sendData) {
+    tg.HapticFeedback?.notificationOccurred('success');
+    tg.sendData(data);
+  } else {
+    status.textContent = 'Форма готова. Откройте её через кнопку Telegram-бота для отправки.';
+  }
+});
+
+</script>
+
+
+
+</body><div id="codex-browser-sidebar-comments-root" style="position: fixed; inset: 0px; pointer-events: none; z-index: 2147483647;"></div></html>
