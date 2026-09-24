@@ -76,9 +76,8 @@ label span:last-child, .field-title span:last-child { display: grid; gap: 2px; }
 b { font-size: 16px; }
 small { color: var(--muted); font-size: 12px; }
 
-input {
+input, textarea {
   width: 100%;
-  height: 52px;
   margin-top: 15px;
   padding: 0 15px;
   border: 1px solid var(--line);
@@ -90,7 +89,15 @@ input {
   font-size: 16px;
   transition: border-color .2s, box-shadow .2s;
 }
-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(155, 133, 255, .14); }
+input { height: 52px; }
+textarea {
+  min-height: 96px;
+  padding-top: 14px;
+  padding-bottom: 14px;
+  resize: vertical;
+  line-height: 1.4;
+}
+input:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(155, 133, 255, .14); }
 input::-webkit-calendar-picker-indicator { filter: invert(.8); opacity: .8; }
 .error { min-height: 15px; margin: 6px 2px -3px; color: #ff8292; font-size: 12px; }
 
@@ -156,7 +163,7 @@ input::-webkit-calendar-picker-indicator { filter: invert(.8); opacity: .8; }
 @media (prefers-color-scheme: light) {
   :root { --line: rgba(41, 31, 78, .1); }
   body { background-color: var(--bg); }
-  input { background: rgba(90, 67, 140, .055); }
+  input, textarea { background: rgba(90, 67, 140, .055); }
   input::-webkit-calendar-picker-indicator { filter: none; }
 }
 
@@ -212,6 +219,15 @@ input::-webkit-calendar-picker-indicator { filter: invert(.8); opacity: .8; }
         </div>
       </section>
 
+      <section class="card">
+        <label for="note">
+          <span class="number">4</span>
+          <span><b>Примечание</b><small>Дополнительная информация, необязательно</small></span>
+        </label>
+        <textarea id="note" name="note" maxlength="300"
+                  placeholder="Например: буду на 10 минут позже"></textarea>
+      </section>
+
       <button class="submit" type="submit">Подтвердить запись</button>
       <p class="status" id="status" role="status"></p>
     </form>
@@ -221,6 +237,7 @@ const tg = window.Telegram?.WebApp;
 const form = document.querySelector('#signup-form');
 const nickname = document.querySelector('#nickname');
 const dateInput = document.querySelector('#event-date');
+const note = document.querySelector('#note');
 const status = document.querySelector('#status');
 const params = new URLSearchParams(window.location.search);
 const sectionId = params.get('section_id') || '0';
@@ -363,6 +380,7 @@ form.addEventListener('submit', (event) => {
     nick: values.nick,
     date: displayDate(values.selectedDate),
     time: `${selectedHour()}:${selectedMinute()}`,
+    note: note.value.trim(),
   });
   if (tg?.sendData) {
     const submit = form.querySelector('.submit');
