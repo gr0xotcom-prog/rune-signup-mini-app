@@ -370,7 +370,19 @@ form.addEventListener('submit', (event) => {
     submit.textContent = 'Отправляем…';
     status.textContent = 'Запись отправляется администратору';
     tg.HapticFeedback?.notificationOccurred('success');
-    tg.sendData(data);
+    try {
+      tg.sendData(data);
+      window.setTimeout(() => {
+        submit.disabled = false;
+        submit.textContent = 'Повторить отправку';
+        status.textContent = 'Telegram не подтвердил отправку. Откройте форму через кнопку раздела и повторите.';
+      }, 4000);
+    } catch (error) {
+      submit.disabled = false;
+      submit.textContent = 'Повторить отправку';
+      status.textContent = 'Не удалось отправить запись. Вернитесь в бот и откройте форму заново.';
+      tg.HapticFeedback?.notificationOccurred('error');
+    }
   } else {
     status.textContent = 'Форма готова. Откройте её через кнопку Telegram-бота для отправки.';
   }
