@@ -167,8 +167,8 @@ input::-webkit-calendar-picker-indicator { filter: invert(.8); opacity: .8; }
     <header class="hero">
       <div class="rune" aria-hidden="true">ᚱ</div>
       <div>
-        <p class="eyebrow">ЗАПИСЬ НА РУНУ</p>
-        <h1>Выберите дату и время</h1>
+        <p class="eyebrow">РАЗДЕЛ ГРУППЫ</p>
+        <h1 id="section-title">Запись на руну</h1>
         <p class="lead">Заполните данные — запись сразу получит администратор.</p>
       </div>
     </header>
@@ -222,6 +222,10 @@ const form = document.querySelector('#signup-form');
 const nickname = document.querySelector('#nickname');
 const dateInput = document.querySelector('#event-date');
 const status = document.querySelector('#status');
+const params = new URLSearchParams(window.location.search);
+const sectionId = params.get('section_id') || '0';
+const sectionName = (params.get('section_name') || 'Запись на руну').trim().slice(0, 32);
+document.querySelector('#section-title').textContent = sectionName;
 
 tg?.ready();
 tg?.expand();
@@ -353,7 +357,9 @@ form.addEventListener('submit', (event) => {
     return;
   }
   const data = JSON.stringify({
-    type: 'rune_signup',
+    type: 'group_signup',
+    section_id: sectionId,
+    section_name: sectionName,
     nick: values.nick,
     date: displayDate(values.selectedDate),
     time: `${selectedHour()}:${selectedMinute()}`,
