@@ -36,6 +36,69 @@ body {
   padding: max(22px, env(safe-area-inset-top)) 18px max(30px, env(safe-area-inset-bottom));
 }
 
+.close-app {
+  min-height: 44px;
+  margin: 0 0 14px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 12px;
+  color: var(--button);
+  background: color-mix(in srgb, var(--card) 88%, transparent);
+  font: inherit;
+  font-weight: 750;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.close-app:active { transform: scale(.98); }
+
+.section-picker { display: grid; gap: 12px; }
+.section-button {
+  width: 100%;
+  min-height: 72px;
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  color: var(--text);
+  background: color-mix(in srgb, var(--card) 94%, transparent);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, .12);
+  font: inherit;
+  font-size: 17px;
+  font-weight: 800;
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.section-button::before {
+  content: "📝";
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 12px;
+  background: rgba(133, 111, 255, .15);
+}
+.section-button::after { content: "›"; margin-left: auto; color: var(--accent); font-size: 28px; }
+.section-button:active { transform: scale(.985); }
+.empty-sections { padding: 24px; text-align: center; color: var(--muted); }
+.back-sections {
+  min-height: 42px;
+  padding: 7px 11px;
+  justify-self: start;
+  border: 0;
+  border-radius: 12px;
+  color: var(--accent);
+  background: rgba(133, 111, 255, .12);
+  font: inherit;
+  font-weight: 750;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+[hidden] { display: none !important; }
+
 .hero { display: flex; gap: 16px; align-items: flex-start; margin: 5px 0 26px; }
 .rune {
   flex: 0 0 58px;
@@ -111,7 +174,7 @@ input::-webkit-calendar-picker-indicator { filter: invert(.8); opacity: .8; }
   scrollbar-width: none;
   mask-image: linear-gradient(transparent, #000 30%, #000 70%, transparent);
   overscroll-behavior: contain;
-  touch-action: none;
+  touch-action: pan-y;
   -webkit-overflow-scrolling: touch;
   cursor: grab;
   user-select: none;
@@ -167,20 +230,24 @@ input::-webkit-calendar-picker-indicator { filter: invert(.8); opacity: .8; }
   input::-webkit-calendar-picker-indicator { filter: none; }
 }
 
-  </style>
+</style>
 </head>
 <body>
   <main class="page">
+    <button class="close-app" id="close-app" type="button">← Закрыть форму</button>
     <header class="hero">
       <div class="rune" aria-hidden="true">ᚱ</div>
       <div>
         <p class="eyebrow">РАЗДЕЛ ГРУППЫ</p>
-        <h1 id="section-title">Запись на руну</h1>
-        <p class="lead">Заполните данные — запись сразу получит администратор.</p>
+        <h1 id="section-title">Разделы группы</h1>
+        <p class="lead" id="page-lead">Выберите раздел, в который хотите записаться.</p>
       </div>
     </header>
 
-    <form id="signup-form" novalidate>
+    <section class="section-picker" id="section-picker" aria-label="Разделы группы"></section>
+
+    <form id="signup-form" novalidate hidden>
+      <button class="back-sections" id="back-sections" type="button">← К разделам</button>
       <section class="card">
         <label for="nickname">
           <span class="number">1</span>
@@ -239,13 +306,80 @@ const nickname = document.querySelector('#nickname');
 const dateInput = document.querySelector('#event-date');
 const note = document.querySelector('#note');
 const status = document.querySelector('#status');
+const closeApp = document.querySelector('#close-app');
+const sectionPicker = document.querySelector('#section-picker');
+const backSections = document.querySelector('#back-sections');
+const pageLead = document.querySelector('#page-lead');
 const params = new URLSearchParams(window.location.search);
-const sectionId = params.get('section_id') || '0';
-const sectionName = (params.get('section_name') || 'Запись на руну').trim().slice(0, 32);
-document.querySelector('#section-title').textContent = sectionName;
+let selectedSection = null;
+let sections = [];
+try {
+  const parsed = JSON.parse(params.get('sections') || '[]');
+  if (Array.isArray(parsed)) {
+    sections = parsed
+      .map(section => ({ id: String(section.id || ''), name: String(section.name || '').trim().slice(0, 32) }))
+      .filter(section => section.id && section.name);
+  }
+} catch (_error) {
+  sections = [];
+}
+if (!sections.length && params.get('section_id')) {
+  sections = [{
+    id: params.get('section_id'),
+    name: (params.get('section_name') || 'Запись на руну').trim().slice(0, 32),
+  }];
+}
 
 tg?.ready();
-tg?.expand();
+tg?.enableVerticalSwipes?.();
+
+function closeMiniApp() {
+  tg?.close();
+}
+
+closeApp.addEventListener('click', closeMiniApp);
+tg?.BackButton?.show();
+tg?.BackButton?.onClick(() => {
+  if (selectedSection) showSections();
+  else closeMiniApp();
+});
+
+function showSections() {
+  selectedSection = null;
+  form.hidden = true;
+  sectionPicker.hidden = false;
+  document.querySelector('#section-title').textContent = 'Разделы группы';
+  pageLead.textContent = 'Выберите раздел, в который хотите записаться.';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function openSection(section) {
+  selectedSection = section;
+  sectionPicker.hidden = true;
+  form.hidden = false;
+  document.querySelector('#section-title').textContent = section.name;
+  pageLead.textContent = 'Заполните данные — запись сразу получит администратор.';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  tg?.HapticFeedback?.selectionChanged();
+}
+
+if (sections.length) {
+  sections.forEach(section => {
+    const button = document.createElement('button');
+    button.className = 'section-button';
+    button.type = 'button';
+    button.textContent = section.name;
+    button.addEventListener('click', () => openSection(section));
+    sectionPicker.append(button);
+  });
+} else {
+  const empty = document.createElement('div');
+  empty.className = 'card empty-sections';
+  empty.textContent = 'Администратор пока не добавил разделы.';
+  sectionPicker.append(empty);
+}
+
+backSections.addEventListener('click', showSections);
 
 function localIsoDate(date = new Date()) {
   const offset = date.getTimezoneOffset() * 60000;
@@ -296,7 +430,9 @@ function createWheel(id, count, initial) {
   }, { passive: true });
 
   wheel.addEventListener('pointerdown', (event) => {
-    if (event.pointerType === 'mouse' && event.button !== 0) return;
+    // Android Telegram WebView handles touch scrolling more reliably itself.
+    // Keep the custom drag implementation only for desktop mouse input.
+    if (event.pointerType !== 'mouse' || event.button !== 0) return;
     clearTimeout(settleTimer);
     drag = {
       id: event.pointerId,
@@ -375,8 +511,8 @@ form.addEventListener('submit', (event) => {
   }
   const data = JSON.stringify({
     type: 'group_signup',
-    section_id: sectionId,
-    section_name: sectionName,
+    section_id: selectedSection?.id || '0',
+    section_name: selectedSection?.name || 'Запись на руну',
     nick: values.nick,
     date: displayDate(values.selectedDate),
     time: `${selectedHour()}:${selectedMinute()}`,
@@ -406,6 +542,6 @@ form.addEventListener('submit', (event) => {
   }
 });
 
-  </script>
+</script>
 </body>
 </html>
